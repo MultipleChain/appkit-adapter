@@ -125,7 +125,6 @@ const createAppKit = async (config: AppKitConfig): Promise<AppKitType> => {
         const eventName = event.data?.event
         // @ts-expect-error there is no type for properties
         const name = event.data?.properties?.name
-        console.log('Event:', eventName, name)
         if (eventName === 'SELECT_WALLET') {
             if (name !== 'Pay by transfer to address (QR Code)') {
                 appKit?.setCaipNetwork(currentNetwork as CaipNetwork)
