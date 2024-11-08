@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="./vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Browser Tests</title>
+    </head>
+    <body>
+        <button id="connect">Connect MultiChain</button>
+
+        <button id="connect-evm">Connect EVM</button>
+
+        <button id="connect-solana">Connect Solana</button>
+
+        <button id="send-coin">
+            Send Coin
+        </button>
+
+        <div class="action-result"></div>
+
+        <script type="module">
+            import appKit from './src/Web3Wallets.ts'
+            import * as Solana from '@multiplechain/solana'
+            import * as EvmChains from '@multiplechain/evm-chains'
+
+            const solanaProvider = new Solana.Provider({
+                testnet: true
+            })
+
+            const evmProvider = new EvmChains.Provider({
+                id: 11155111,
+                hexId: '0xaa36a7',
+                mainnetId: 1,
+                rpcUrl: 'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+                wsUrl: 'wss://sepolia.infura.io/ws/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+                name: 'Ethereum Sepolia Testnet (QR)',
+                explorerUrl: 'https://sepolia.etherscan.io/',
+                nativeCurrency: {
+                    symbol: 'ETH',
+                    name: 'Ethereum',
+                    decimals: 18
+                }
+            })
+
+            const options = {
+                themeMode: 'light',
+                projectId: '113d9f5689edd84ff230c2a6d679c80c'
+            }
+
+            let wallet
+
+            document.getElementById('connect').addEventListener('click', async () => {
+                wallet = new Solana.browser.Wallet(appKit)
+                await wallet.adapter.disconnect()
+                wallet.connect(options)
+                    .then((provider) => {
+                        console.log('connected', provider)
+                    })
+                    .catch((error) => {
+                        console.error(error)
+                    })
+            })
+
+            document.getElementById('connect-evm').addEventListener('click', async () => {
+                await EvmChains.browser.adapters.Web3Wallets.disconnect()
+                EvmChains.browser.adapters.Web3Wallets.connect(evmProvider, options)
+                    .then((provider) => {
+                        console.log('connected', provider)
+                    })
+                    .catch((error) => {
+                        console.error(error)
+                    })
+            })
+
+            document.getElementById('connect-solana').addEventListener('click', async () => {
+                await Solana.browser.adapters.Web3Wallets.disconnect()
+                Solana.browser.adapters.Web3Wallets.connect(solanaProvider, options)
+                    .then((provider) => {
+                        console.log('connected', provider)
+                    })
+                    .catch((error) => {
+                        console.error(error)
+                    })
+            })
+
+            const receiver = 'GHVMV3zZscR8V4K5GEgQTUjuV4jEixB9a4QX3KhgvVKy';
+            document.getElementById('send-coin').addEventListener('click', async () => {
+                const sender = await wallet.getAddress()
+                const coin = new Solana.assets.Coin();
+                const signer = await coin.transfer(sender, receiver, 0.00001)
+                const result = await wallet.sendTransaction(signer)
+                document.querySelector('.action-result').innerText = result
+            })
+        </script>
+    </body>
+</html>
